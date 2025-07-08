@@ -14,13 +14,16 @@ export default function Comments() {
 
   const token = localStorage.getItem('token');
 
-  // ✅ Memoized function so useEffect is happy
+  // ✅ Cleaned up useCallback: removed API_URL from dependencies
   const fetchComments = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API_URL}/api/v1/posts/${postId}/comments`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await axios.get(
+        `${API_URL}/api/v1/posts/${postId}/comments`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setComments(response.data.data);
       setMessage('');
     } catch (err) {
@@ -29,7 +32,7 @@ export default function Comments() {
     } finally {
       setLoading(false);
     }
-  }, [API_URL, postId, token]);
+  }, [postId, token]);  // ✅ only include variables that change at runtime
 
   useEffect(() => {
     fetchComments();
@@ -64,7 +67,7 @@ export default function Comments() {
 
       setNewComment('');
       setMessage('Comment added!');
-      fetchComments(); // refresh list
+      fetchComments();
     } catch (err) {
       console.error(err);
       if (err.response?.data?.detail) {
