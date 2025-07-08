@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 
@@ -14,7 +14,8 @@ export default function Comments() {
 
   const token = localStorage.getItem('token');
 
-  const fetchComments = async () => {
+  // ✅ Memoized function so useEffect is happy
+  const fetchComments = useCallback(async () => {
     setLoading(true);
     try {
       const response = await axios.get(`${API_URL}/api/v1/posts/${postId}/comments`, {
@@ -28,11 +29,11 @@ export default function Comments() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [API_URL, postId, token]);
 
   useEffect(() => {
     fetchComments();
-  }, [postId]);
+  }, [fetchComments]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -63,7 +64,7 @@ export default function Comments() {
 
       setNewComment('');
       setMessage('Comment added!');
-      fetchComments(); // refresh comments list
+      fetchComments(); // refresh list
     } catch (err) {
       console.error(err);
       if (err.response?.data?.detail) {
