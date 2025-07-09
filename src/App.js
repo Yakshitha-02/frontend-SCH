@@ -1,10 +1,11 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import React, { useContext } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate, useLocation } from 'react-router-dom';
 import Signup from './pages/Signup';
 import Login from './pages/Login';
 import Posts from './pages/Posts';
 import CreatePost from './pages/CreatePost';
 import Comments from './pages/Comments';
+import { AuthProvider, AuthContext } from './context/AuthContext';
 
 // Highlight active link
 function NavLink({ to, children }) {
@@ -28,56 +29,97 @@ function NavLink({ to, children }) {
   );
 }
 
+// Navigation bar with conditional links
+function Navigation() {
+  const { isAuthenticated, logout } = useContext(AuthContext);
+
+  return (
+    <nav style={{ textAlign: 'center', marginBottom: '24px' }}>
+      {!isAuthenticated && <>
+        <NavLink to="/signup">Signup</NavLink>
+        <NavLink to="/login">Login</NavLink>
+      </>}
+      {isAuthenticated && <>
+        <NavLink to="/posts">Posts</NavLink>
+        <NavLink to="/create">Create Post</NavLink>
+        <button onClick={logout} style={{
+          marginLeft: '12px',
+          padding: '4px 8px',
+          background: '#d32f2f',
+          color: '#fff',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer'
+        }}>Logout</button>
+      </>}
+    </nav>
+  );
+}
+
+// Protected route logic
+function ProtectedRoute({ children }) {
+  const { isAuthenticated } = useContext(AuthContext);
+  return isAuthenticated ? children : <Navigate to="/login" />;
+}
+
 export default function App() {
   return (
-    <Router>
-      <div
-        style={{
-          minHeight: '100vh',
-          background: 'linear-gradient(135deg, #e3f2fd 0%, #fce4ec 100%)',
-          padding: 0,
-          margin: 0,
-          fontFamily: 'Segoe UI, Arial, sans-serif'
-        }}
-      >
+    <AuthProvider>
+      <Router>
         <div
           style={{
-            maxWidth: '540px',
-            margin: '48px auto',
-            background: '#fff',
-            borderRadius: '14px',
-            boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
-            padding: '32px 24px'
+            minHeight: '100vh',
+            background: 'linear-gradient(135deg, #e3f2fd 0%, #fce4ec 100%)',
+            padding: 0,
+            margin: 0,
+            fontFamily: 'Segoe UI, Arial, sans-serif'
           }}
         >
-          <h1 style={{ textAlign: 'center', color: '#1976d2', marginBottom: '24px', letterSpacing: '1px' }}>
-            StudentCollabHub
-          </h1>
-          <nav style={{ textAlign: 'center', marginBottom: '24px' }}>
-            <NavLink to="/signup">Signup</NavLink>
-            <NavLink to="/login">Login</NavLink>
-            <NavLink to="/posts">Posts</NavLink>
-            <NavLink to="/create">Create Post</NavLink>
-          </nav>
-          <hr style={{ margin: '24px 0', border: 'none', borderTop: '1px solid #eee' }} />
+          <div
+            style={{
+              maxWidth: '540px',
+              margin: '48px auto',
+              background: '#fff',
+              borderRadius: '14px',
+              boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
+              padding: '32px 24px'
+            }}
+          >
+            <h1 style={{ textAlign: 'center', color: '#1976d2', marginBottom: '24px', letterSpacing: '1px' }}>
+              StudentCollabHub
+            </h1>
 
-          <Routes>
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/posts" element={<Posts />} />
-            <Route path="/create" element={<CreatePost />} />
-            <Route path="/comments/:postId" element={<Comments />} />
-            <Route path="/" element={
-              <div style={{ textAlign: 'center', marginTop: '40px' }}>
-                <h2 style={{ color: '#333' }}>Welcome to StudentCollabHub Home!</h2>
-                <p style={{ color: '#666', fontSize: '1.1em' }}>
-                  Connect, collaborate, and grow with your peers.
-                </p>
-              </div>
-            } />
-          </Routes>
+            <Navigation />
+
+            <hr style={{ margin: '24px 0', border: 'none', borderTop: '1px solid #eee' }} />
+
+            <Routes>
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/login" element={<Login />} />
+
+              <Route path="/posts" element={
+                <ProtectedRoute>
+                  <Posts />
+                </ProtectedRoute>
+              } />
+
+              <Route path="/create" element={
+                <ProtectedRoute>
+                  <CreatePost />
+                </ProtectedRoute>
+              } />
+
+              <Route path="/comments/:postId" element={
+                <ProtectedRoute>
+                  <Comments />
+                </ProtectedRoute>
+              } />
+
+              <Route path="/" element={<Navigate to="/login" />} />
+            </Routes>
+          </div>
         </div>
-      </div>
-        </Router>
-      );
-    }
+      </Router>
+    </AuthProvider>
+  );
+}
