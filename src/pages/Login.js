@@ -1,7 +1,6 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext';
+import { useNavigate, Link } from 'react-router-dom';
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -10,7 +9,6 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
-  const { login } = useContext(AuthContext); // ✅ Use login from context
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,12 +21,16 @@ export default function Login() {
       });
 
       const { token } = response.data.data;
+      localStorage.setItem('token', token);
 
-      login(token);               // ✅ Save token & set auth state
-      navigate('/posts');         // ✅ Redirect after login
+      setMessage('Login successful!');
+      setEmail('');
+      setPassword('');
+
+      navigate('/posts');
     } catch (err) {
       console.error(err);
-      if (err.response?.data?.detail) {
+      if (err.response && err.response.data && err.response.data.detail) {
         setMessage(`Error: ${err.response.data.detail}`);
       } else {
         setMessage('Error logging in. Please try again.');
@@ -37,39 +39,33 @@ export default function Login() {
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: '0 auto' }}>
-      <h2>Login</h2>
+    <div className="container">
+      <h2 className="heading">Login</h2>
       <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: '12px' }}>
-          <label>Email:</label><br />
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            style={{ width: '100%', padding: '8px', borderRadius: '6px' }}
-          />
-        </div>
-        <div style={{ marginBottom: '12px' }}>
-          <label>Password:</label><br />
-          <input
-            type="password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            style={{ width: '100%', padding: '8px', borderRadius: '6px' }}
-          />
-        </div>
-        <button type="submit" style={{
-          backgroundColor: '#1976d2',
-          color: 'white',
-          border: 'none',
-          padding: '10px 16px',
-          borderRadius: '6px',
-          cursor: 'pointer'
-        }}>Login</button>
+        <input
+          className="input"
+          type="email"
+          required
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <input
+          className="input"
+          type="password"
+          required
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <button className="button" type="submit">Login</button>
       </form>
-      {message && <p style={{ marginTop: '16px', color: 'red' }}>{message}</p>}
+      
+      <div className="switch">
+        Don’t have an account? <Link to="/signup">Sign up here</Link>
+      </div>
+
+      {message && <p className="message">{message}</p>}
     </div>
   );
 }
