@@ -7,7 +7,7 @@ import CreatePost from './pages/CreatePost';
 import Comments from './pages/Comments';
 import { AuthProvider, AuthContext } from './context/AuthContext';
 
-// Highlight active link component
+// Highlight active link
 function NavLink({ to, children }) {
   const location = useLocation();
   const isActive = location.pathname === to;
@@ -29,38 +29,32 @@ function NavLink({ to, children }) {
   );
 }
 
-// Navigation bar shown only when authenticated
+// Navigation bar (hidden on login/signup)
 function Navigation() {
   const { isAuthenticated, logout } = useContext(AuthContext);
+  const location = useLocation();
+
+  if (!isAuthenticated) return null;
+  if (location.pathname === '/login' || location.pathname === '/signup') return null;
 
   return (
     <nav style={{ textAlign: 'center', marginBottom: '24px' }}>
-      {!isAuthenticated && (
-        <>
-          <NavLink to="/signup">Signup</NavLink>
-          <NavLink to="/login">Login</NavLink>
-        </>
-      )}
-      {isAuthenticated && (
-        <>
-          <NavLink to="/posts">Posts</NavLink>
-          <NavLink to="/create">Create Post</NavLink>
-          <button
-            onClick={logout}
-            style={{
-              marginLeft: '12px',
-              padding: '4px 8px',
-              background: '#d32f2f',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer'
-            }}
-          >
-            Logout
-          </button>
-        </>
-      )}
+      <NavLink to="/posts">Posts</NavLink>
+      <NavLink to="/create">Create Post</NavLink>
+      <button
+        onClick={logout}
+        style={{
+          marginLeft: '12px',
+          padding: '4px 8px',
+          background: '#d32f2f',
+          color: '#fff',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer'
+        }}
+      >
+        Logout
+      </button>
     </nav>
   );
 }
@@ -100,10 +94,8 @@ function Home() {
   );
 }
 
-// Main routes and layout
+// App routes
 function AppRoutes() {
-  const { isAuthenticated } = useContext(AuthContext);
-
   return (
     <div
       style={{
@@ -135,12 +127,9 @@ function AppRoutes() {
           StudentCollabHub
         </h1>
 
-        {isAuthenticated && (
-          <>
-            <Navigation />
-            <hr style={{ margin: '24px 0', border: 'none', borderTop: '1px solid #eee' }} />
-          </>
-        )}
+        <Navigation />
+
+        <hr style={{ margin: '24px 0', border: 'none', borderTop: '1px solid #eee' }} />
 
         <Routes>
           <Route path="/" element={<Home />} />
@@ -176,7 +165,7 @@ function AppRoutes() {
   );
 }
 
-// App entry
+// App root
 export default function App() {
   return (
     <AuthProvider>

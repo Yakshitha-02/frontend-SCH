@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext';
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -9,6 +10,8 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
+
+  const { login } = useContext(AuthContext);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,7 +24,9 @@ export default function Login() {
       });
 
       const { token } = response.data.data;
-      localStorage.setItem('token', token);
+
+      // Use AuthContext login() method
+      login(token);
 
       setMessage('Login successful!');
       setEmail('');
